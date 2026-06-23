@@ -5,23 +5,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 
-> AI-powered Git commit message generator. Reads your staged diff, generates a [Conventional Commit](https://www.conventionalcommits.org/) message, and commits — in seconds.
+> AI-powered Git commit message generator. Install it, use it — no configuration required.
 
-Supports **OpenRouter** (free cloud models) and **Ollama** (fully local, no API key). Config is stored globally — set up once, works in every project.
-
----
-
-## Features
-
-- **Two providers** — OpenRouter (cloud) or Ollama (local)
-- **One-time setup** — saved to `~/.ai-commit/config.json`, no `.env` per project
-- **Two message modes** — full (subject + bullet list per changed file) or short (one line)
-- **Auto fallback** — if one OpenRouter free model is rate-limited, tries the next automatically
-- **`--dry-run`** — preview the message without committing
-- **`--yes`** — skip the confirmation prompt for scripting
-- **`--amend`** — regenerate and amend the last commit
-- **`write-commit log`** — show unpushed commits with timestamps
-- **`write-commit config`** — switch provider or update your API key
+Reads your staged diff, generates a [Conventional Commit](https://www.conventionalcommits.org/) message using AI, and commits on your approval. Works instantly out of the box via **Pollinations AI** (free, no account). Optionally upgrade to **OpenRouter** or **Ollama** for higher quality messages.
 
 ---
 
@@ -31,68 +17,31 @@ Supports **OpenRouter** (free cloud models) and **Ollama** (fully local, no API 
 npm install -g write-commit
 ```
 
-On first run, a setup wizard asks for your provider and saves the config globally.
+That's it. No API key. No account. No config file.
 
 ---
 
 ## Quick start
 
 ```bash
-# Stage your changes
 git add .
-
-# Generate message, confirm, commit
 write-commit
 ```
-
-That's it.
-
----
-
-## Setup
-
-### Option 1 — OpenRouter (free cloud models)
-
-Get a free API key at [openrouter.ai/keys](https://openrouter.ai/keys). No credit card required.
-
-```
-Choose your AI provider:
-
-  1  OpenRouter  (cloud — free models available)
-  2  Ollama      (local — runs on your machine)
-
-Enter 1 or 2: 1
-
-OpenRouter API key: sk-or-...
-Model (press Enter for default: meta-llama/llama-3.3-70b-instruct:free):
-
-✅ Config saved to /Users/you/.ai-commit/config.json
-```
-
-### Option 2 — Ollama (fully local)
-
-Install [Ollama](https://ollama.com) and pull a model first:
-
-```bash
-ollama pull llama3.2
-```
-
-Then run `write-commit` and choose option 2.
 
 ---
 
 ## Usage
 
 ```bash
-write-commit                  # full message (subject + bullets), confirm before commit
-write-commit --short          # single subject line only
-write-commit --yes            # skip confirmation
-write-commit --dry-run        # preview message, do not commit
-write-commit --amend          # amend the previous commit
+write-commit                   # full message — subject + bullets per changed file/function
+write-commit --short           # single subject line only
+write-commit --yes             # skip confirmation prompt
+write-commit --dry-run         # preview message, do not commit
+write-commit --amend           # regenerate and amend the last commit
 
-write-commit log              # show unpushed commits with timestamps
-write-commit config           # change provider, API key, or model
-write-commit config --show    # print current settings
+write-commit log               # show unpushed commits with timestamps
+write-commit config            # switch provider or update credentials
+write-commit config --show     # print current provider settings
 ```
 
 ---
@@ -101,7 +50,7 @@ write-commit config --show    # print current settings
 
 ### Full (default)
 
-Best for multi-file commits. Covers every changed file and function.
+Covers every changed file and function. Best for multi-file commits.
 
 ```
 Suggested commit message:
@@ -112,42 +61,100 @@ Suggested commit message:
   - useNoteLock: new hook stores lock state in zustand, persists to localStorage
   - LockModal: PIN input auto-focuses on open, clears on wrong attempt
   - Cmd+Shift+L shortcut wires to useNoteLock.toggle() via useHotkeys
+
+Commit this change? (Y/n)
 ```
 
 ### Short (`--short`)
 
-Best for small, focused commits. One line, under 72 characters.
+Single subject line only, under 72 characters. Best for small focused commits.
 
 ```
 Suggested commit message:
 
   feat(NoteEditor): add Cmd+Shift+L shortcut to toggle note lock
+
+Commit this change? (Y/n)
 ```
 
 ---
 
-## Configuration
+## Providers
 
-Config is stored at `~/.ai-commit/config.json` — one file for your whole machine.
+`write-commit` works with three AI providers. Switch anytime with `write-commit config`.
 
-To update it at any time:
+| Provider | Setup | Quality | How to use |
+|---|---|---|---|
+| **Pollinations** | None — works instantly | Good | Default, no action needed |
+| **OpenRouter** | Free API key | Better | `write-commit config` → choose 2 |
+| **Ollama** | Install Ollama locally | Best (private) | `write-commit config` → choose 3 |
+
+### Switching provider
 
 ```bash
-write-commit config           # re-run the setup wizard
-write-commit config --show    # see current settings
+write-commit config
+```
+
+```
+⚙  write-commit — provider config
+
+  1  Pollinations  (default — free, no account, no API key)
+  2  OpenRouter    (free cloud models — better quality, needs API key)
+  3  Ollama        (fully local — runs on your machine)
+
+Enter 1, 2, or 3:
+```
+
+Config is saved globally at `~/.ai-commit/config.json` — works across every project on your machine, no `.env` files needed anywhere.
+
+### OpenRouter
+
+Get a free API key at [openrouter.ai/keys](https://openrouter.ai/keys). No credit card required.
+
+### Ollama
+
+Install [Ollama](https://ollama.com), pull a model, then configure:
+
+```bash
+ollama pull llama3.2
+write-commit config   # choose 3, press Enter for defaults
 ```
 
 ---
 
-## How the OpenRouter fallback works
+## Flags
 
-Free-tier models have rate limits. `write-commit` handles this automatically:
+| Flag | Short | Description |
+|---|---|---|
+| `--dry-run` | `-d` | Generate message without committing |
+| `--yes` | `-y` | Skip the confirmation prompt |
+| `--short` | `-s` | Single subject line only |
+| `--amend` | | Amend the previous commit |
 
-1. Tries your configured model first
-2. If rate-limited or unavailable — fetches the live list of free models from OpenRouter and tries them in order
-3. Only fails if every available free model is exhausted
+---
 
-You never see a dead error just because one model is busy.
+## How OpenRouter fallback works
+
+When using OpenRouter, if a free model is rate-limited or unavailable, `write-commit` automatically:
+
+1. Fetches the live list of free models from OpenRouter
+2. Tries the next available one
+3. Only fails if every free model is exhausted
+
+You never see a rate-limit error — it just silently moves to the next model.
+
+---
+
+## Commands
+
+| Command | Description |
+|---|---|
+| `write-commit` | Generate message and commit staged changes |
+| `write-commit log` | Show unpushed commits with timestamps |
+| `write-commit config` | Switch provider or update API key / model |
+| `write-commit config --show` | Print current provider and settings |
+| `write-commit --version` | Print installed version |
+| `write-commit --help` | Show all options |
 
 ---
 
@@ -158,10 +165,10 @@ git clone https://github.com/iamsrikanth-dev/write-commit.git
 cd write-commit
 npm install
 npm run build
-npm link          # makes `write-commit` globally available from your local clone
+npm link          # makes `write-commit` available globally from your local clone
 ```
 
-Run without building:
+Run without building every time:
 
 ```bash
 npm run dev
