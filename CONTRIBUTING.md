@@ -1,15 +1,15 @@
-# Contributing to ai-commit
+# Contributing to commit-ai
 
 Thank you for taking the time to contribute! Here's everything you need to get started.
 
 ## Local setup
 
 ```bash
-git clone https://github.com/iamsrikanth-dev/ai-commit.git
-cd ai-commit
+git clone https://github.com/iamsrikanth-dev/commit-ai.git
+cd commit-ai
 npm install
 npm run build
-npm link          # makes `ai-commit` available globally from your local clone
+npm link          # makes `commit-ai` available globally from your local clone
 ```
 
 To run without building every time:
@@ -28,7 +28,7 @@ src/
 │   └── log.ts            Unpushed commits display
 ├── config/
 │   ├── setup.ts          First-run and re-config wizard
-│   └── store.ts          Read/write ~/.ai-commit/config.json
+│   └── store.ts          Read/write ~/.commit-ai/config.json
 ├── services/
 │   ├── openrouter.ts     OpenRouter API + model fallback chain
 │   ├── ollama.ts         Ollama local API
@@ -57,18 +57,18 @@ src/
 
 ## Commit style
 
-This project uses Conventional Commits. The `ai-commit` tool itself is great for this:
+This project uses Conventional Commits. The `commit-ai` tool itself is great for this:
 
 ```bash
 git add .
-ai-commit
+commit-ai
 ```
 
 Or write it manually: `feat(scope): what changed`.
 
 ## Reporting bugs
 
-Open an issue at https://github.com/iamsrikanth-dev/ai-commit/issues and include:
+Open an issue at https://github.com/iamsrikanth-dev/commit-ai/issues and include:
 - Your OS and Node version (`node -v`)
 - The command you ran
 - The full error output

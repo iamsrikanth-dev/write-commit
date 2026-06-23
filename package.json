@@ -1,10 +1,10 @@
 {
-  "name": "ai-commit",
+  "name": "commit-ai",
   "version": "1.0.0",
   "description": "AI-powered Git commit message generator — OpenRouter or Ollama, works in every project",
   "main": "dist/index.js",
   "bin": {
-    "ai-commit": "./dist/index.js"
+    "commit-ai": "./dist/index.js"
   },
   "scripts": {
     "build": "tsc",
@@ -25,7 +25,8 @@
     "commit-message",
     "developer-tools",
     "llm",
-    "gpt"
+    "gpt",
+    "free"
   ],
   "author": "Srikanth <iamsrikanthdev@gmail.com>",
   "license": "MIT",

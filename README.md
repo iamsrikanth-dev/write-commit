@@ -1,6 +1,6 @@
-# ai-commit
+# commit-ai
 
-[![npm version](https://img.shields.io/npm/v/ai-commit.svg)](https://www.npmjs.com/package/ai-commit)
+[![npm version](https://img.shields.io/npm/v/commit-ai.svg)](https://www.npmjs.com/package/commit-ai)
 [![CI](https://github.com/iamsrikanth-dev/ai-commit/actions/workflows/ci.yml/badge.svg)](https://github.com/iamsrikanth-dev/ai-commit/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
@@ -20,15 +20,15 @@ Supports **OpenRouter** (free cloud models) and **Ollama** (fully local, no API 
 - **`--dry-run`** — preview the message without committing
 - **`--yes`** — skip the confirmation prompt for scripting
 - **`--amend`** — regenerate and amend the last commit
-- **`ai-commit log`** — show unpushed commits with timestamps
-- **`ai-commit config`** — switch provider or update your API key
+- **`commit-ai log`** — show unpushed commits with timestamps
+- **`commit-ai config`** — switch provider or update your API key
 
 ---
 
 ## Install
 
 ```bash
-npm install -g ai-commit
+npm install -g commit-ai
 ```
 
 On first run, a setup wizard asks for your provider and saves the config globally.
@@ -42,7 +42,7 @@ On first run, a setup wizard asks for your provider and saves the config globall
 git add .
 
 # Generate message, confirm, commit
-ai-commit
+commit-ai
 ```
 
 That's it.
@@ -77,22 +77,22 @@ Install [Ollama](https://ollama.com) and pull a model first:
 ollama pull llama3.2
 ```
 
-Then run `ai-commit` and choose option 2.
+Then run `commit-ai` and choose option 2.
 
 ---
 
 ## Usage
 
 ```bash
-ai-commit                  # full message (subject + bullets), confirm before commit
-ai-commit --short          # single subject line only
-ai-commit --yes            # skip confirmation
-ai-commit --dry-run        # preview message, do not commit
-ai-commit --amend          # amend the previous commit
+commit-ai                  # full message (subject + bullets), confirm before commit
+commit-ai --short          # single subject line only
+commit-ai --yes            # skip confirmation
+commit-ai --dry-run        # preview message, do not commit
+commit-ai --amend          # amend the previous commit
 
-ai-commit log              # show unpushed commits with timestamps
-ai-commit config           # change provider, API key, or model
-ai-commit config --show    # print current settings
+commit-ai log              # show unpushed commits with timestamps
+commit-ai config           # change provider, API key, or model
+commit-ai config --show    # print current settings
 ```
 
 ---
@@ -133,15 +133,15 @@ Config is stored at `~/.ai-commit/config.json` — one file for your whole machi
 To update it at any time:
 
 ```bash
-ai-commit config           # re-run the setup wizard
-ai-commit config --show    # see current settings
+commit-ai config           # re-run the setup wizard
+commit-ai config --show    # see current settings
 ```
 
 ---
 
 ## How the OpenRouter fallback works
 
-Free-tier models have rate limits. `ai-commit` handles this automatically:
+Free-tier models have rate limits. `commit-ai` handles this automatically:
 
 1. Tries your configured model first
 2. If rate-limited or unavailable — fetches the live list of free models from OpenRouter and tries them in order
@@ -158,7 +158,7 @@ git clone https://github.com/iamsrikanth-dev/ai-commit.git
 cd ai-commit
 npm install
 npm run build
-npm link          # makes `ai-commit` globally available from your local clone
+npm link          # makes `commit-ai` globally available from your local clone
 ```
 
 Run without building:
