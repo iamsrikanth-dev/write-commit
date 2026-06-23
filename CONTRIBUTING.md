@@ -1,15 +1,15 @@
-# Contributing to ai-gitcommit
+# Contributing to write-commit
 
 Thank you for taking the time to contribute! Here's everything you need to get started.
 
 ## Local setup
 
 ```bash
-git clone https://github.com/iamsrikanth-dev/ai-gitcommit.git
-cd ai-gitcommit
+git clone https://github.com/iamsrikanth-dev/write-commit.git
+cd write-commit
 npm install
 npm run build
-npm link          # makes `ai-gitcommit` available globally from your local clone
+npm link          # makes `write-commit` available globally from your local clone
 ```
 
 To run without building every time:
@@ -28,7 +28,7 @@ src/
 │   └── log.ts            Unpushed commits display
 ├── config/
 │   ├── setup.ts          First-run and re-config wizard
-│   └── store.ts          Read/write ~/.ai-gitcommit/config.json
+│   └── store.ts          Read/write ~/.write-commit/config.json
 ├── services/
 │   ├── openrouter.ts     OpenRouter API + model fallback chain
 │   ├── ollama.ts         Ollama local API
@@ -57,18 +57,18 @@ src/
 
 ## Commit style
 
-This project uses Conventional Commits. The `ai-gitcommit` tool itself is great for this:
+This project uses Conventional Commits. The `write-commit` tool itself is great for this:
 
 ```bash
 git add .
-ai-gitcommit
+write-commit
 ```
 
 Or write it manually: `feat(scope): what changed`.
 
 ## Reporting bugs
 
-Open an issue at https://github.com/iamsrikanth-dev/ai-gitcommit/issues and include:
+Open an issue at https://github.com/iamsrikanth-dev/write-commit/issues and include:
 - Your OS and Node version (`node -v`)
 - The command you ran
 - The full error output

@@ -1,7 +1,7 @@
-# ai-gitcommit
+# write-commit
 
-[![npm version](https://img.shields.io/npm/v/ai-gitcommit.svg)](https://www.npmjs.com/package/ai-gitcommit)
-[![CI](https://github.com/iamsrikanth-dev/ai-commit/actions/workflows/ci.yml/badge.svg)](https://github.com/iamsrikanth-dev/ai-commit/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/write-commit.svg)](https://www.npmjs.com/package/write-commit)
+[![CI](https://github.com/iamsrikanth-dev/write-commit/actions/workflows/ci.yml/badge.svg)](https://github.com/iamsrikanth-dev/write-commit/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 
@@ -20,15 +20,15 @@ Supports **OpenRouter** (free cloud models) and **Ollama** (fully local, no API 
 - **`--dry-run`** — preview the message without committing
 - **`--yes`** — skip the confirmation prompt for scripting
 - **`--amend`** — regenerate and amend the last commit
-- **`ai-gitcommit log`** — show unpushed commits with timestamps
-- **`ai-gitcommit config`** — switch provider or update your API key
+- **`write-commit log`** — show unpushed commits with timestamps
+- **`write-commit config`** — switch provider or update your API key
 
 ---
 
 ## Install
 
 ```bash
-npm install -g ai-gitcommit
+npm install -g write-commit
 ```
 
 On first run, a setup wizard asks for your provider and saves the config globally.
@@ -42,7 +42,7 @@ On first run, a setup wizard asks for your provider and saves the config globall
 git add .
 
 # Generate message, confirm, commit
-ai-gitcommit
+write-commit
 ```
 
 That's it.
@@ -77,22 +77,22 @@ Install [Ollama](https://ollama.com) and pull a model first:
 ollama pull llama3.2
 ```
 
-Then run `ai-gitcommit` and choose option 2.
+Then run `write-commit` and choose option 2.
 
 ---
 
 ## Usage
 
 ```bash
-ai-gitcommit                  # full message (subject + bullets), confirm before commit
-ai-gitcommit --short          # single subject line only
-ai-gitcommit --yes            # skip confirmation
-ai-gitcommit --dry-run        # preview message, do not commit
-ai-gitcommit --amend          # amend the previous commit
+write-commit                  # full message (subject + bullets), confirm before commit
+write-commit --short          # single subject line only
+write-commit --yes            # skip confirmation
+write-commit --dry-run        # preview message, do not commit
+write-commit --amend          # amend the previous commit
 
-ai-gitcommit log              # show unpushed commits with timestamps
-ai-gitcommit config           # change provider, API key, or model
-ai-gitcommit config --show    # print current settings
+write-commit log              # show unpushed commits with timestamps
+write-commit config           # change provider, API key, or model
+write-commit config --show    # print current settings
 ```
 
 ---
@@ -133,15 +133,15 @@ Config is stored at `~/.ai-commit/config.json` — one file for your whole machi
 To update it at any time:
 
 ```bash
-ai-gitcommit config           # re-run the setup wizard
-ai-gitcommit config --show    # see current settings
+write-commit config           # re-run the setup wizard
+write-commit config --show    # see current settings
 ```
 
 ---
 
 ## How the OpenRouter fallback works
 
-Free-tier models have rate limits. `ai-gitcommit` handles this automatically:
+Free-tier models have rate limits. `write-commit` handles this automatically:
 
 1. Tries your configured model first
 2. If rate-limited or unavailable — fetches the live list of free models from OpenRouter and tries them in order
@@ -154,11 +154,11 @@ You never see a dead error just because one model is busy.
 ## Development
 
 ```bash
-git clone https://github.com/iamsrikanth-dev/ai-commit.git
-cd ai-commit
+git clone https://github.com/iamsrikanth-dev/write-commit.git
+cd write-commit
 npm install
 npm run build
-npm link          # makes `ai-gitcommit` globally available from your local clone
+npm link          # makes `write-commit` globally available from your local clone
 ```
 
 Run without building:

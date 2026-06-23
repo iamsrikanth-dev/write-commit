@@ -82,20 +82,20 @@ async function setupOllama(): Promise<AIConfig> {
 export async function runSetup(isReconfig = false): Promise<AIConfig> {
   br();
   if (isReconfig) {
-    print(`${C.cyan}${C.bold}⚙  ai-gitcommit — update config${C.reset}`);
+    print(`${C.cyan}${C.bold}⚙  write-commit — update config${C.reset}`);
     print(`${C.dim}Config is saved globally — changes apply to every project.${C.reset}`);
   } else {
-    print(`${C.cyan}${C.bold}👋 Welcome to ai-gitcommit!${C.reset}`);
-    print(`${C.dim}One-time setup — saved globally at ~/.ai-gitcommit/config.json.${C.reset}`);
+    print(`${C.cyan}${C.bold}👋 Welcome to write-commit!${C.reset}`);
+    print(`${C.dim}One-time setup — saved globally at ~/.write-commit/config.json.${C.reset}`);
     print(`${C.dim}Works in every project without any .env files.${C.reset}`);
     br();
     print(`${C.bold}How it generates commit messages:${C.reset}`);
     print(`  ${C.cyan}default${C.reset}  Subject line + bullet list covering every changed file/function.`);
-    print(`           Best for multi-file commits. Run: ${C.bold}ai-gitcommit${C.reset}`);
+    print(`           Best for multi-file commits. Run: ${C.bold}write-commit${C.reset}`);
     print(`  ${C.cyan}--short${C.reset}  Single subject line only, under 72 characters.`);
-    print(`           Best for small focused commits. Run: ${C.bold}ai-gitcommit --short${C.reset}`);
+    print(`           Best for small focused commits. Run: ${C.bold}write-commit --short${C.reset}`);
     br();
-    print(`${C.dim}You can always change your provider later with: ai-gitcommit config${C.reset}`);
+    print(`${C.dim}You can always change your provider later with: write-commit config${C.reset}`);
   }
   br();
 
