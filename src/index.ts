@@ -11,7 +11,7 @@ import { logger } from './utils/logger.js';
 const program = new Command();
 
 program
-  .name('commit-ai')
+  .name('ai-gitcommit')
   .description('AI-powered Git commit message generator (OpenRouter or Ollama)')
   .version('1.0.0');
 
@@ -32,11 +32,11 @@ Message modes:
                    Best for tiny, focused commits.
 
 Examples:
-  commit-ai                    Full message, confirm before committing
-  commit-ai --short            One-line message only
-  commit-ai --short --yes      One-line, auto-confirm
-  commit-ai --dry-run          Preview full message, do not commit
-  commit-ai --amend            Regenerate message and amend last commit
+  ai-gitcommit                    Full message, confirm before committing
+  ai-gitcommit --short            One-line message only
+  ai-gitcommit --short --yes      One-line, auto-confirm
+  ai-gitcommit --dry-run          Preview full message, do not commit
+  ai-gitcommit --amend            Regenerate message and amend last commit
 `)
   .action(async (options: CommitOptions) => {
     let config = loadConfig();
@@ -66,7 +66,7 @@ program
     if (opts.show) {
       const config = loadConfig();
       if (!config) {
-        logger.error('No config found. Run: commit-ai config');
+        logger.error('No config found. Run: ai-gitcommit config');
         process.exit(1);
       }
       logger.newline();
