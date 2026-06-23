@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import * as fs from 'fs';
+import * as path from 'path';
 import { Command } from 'commander';
 import { runCommit } from './commands/commit.js';
 import { runLog } from './commands/log.js';
@@ -8,12 +10,16 @@ import { loadConfig, getConfigPath } from './config/store.js';
 import { CommitOptions, AIConfig } from './types/index.js';
 import { logger } from './utils/logger.js';
 
+const { version } = JSON.parse(
+  fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf-8'),
+) as { version: string };
+
 const program = new Command();
 
 program
   .name('write-commit')
   .description('AI-powered Git commit message generator — zero setup, works instantly')
-  .version('1.0.0');
+  .version(version);
 
 // ── commit (default) ──────────────────────────────────────────────────────────
 program
