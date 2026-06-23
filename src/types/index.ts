@@ -70,7 +70,7 @@ export interface OllamaResponse {
 
 // Global config
 
-export type AIProvider = 'openrouter' | 'ollama';
+export type AIProvider = 'pollinations' | 'openrouter' | 'ollama';
 
 export interface OpenRouterConfig {
   provider: 'openrouter';
@@ -84,7 +84,11 @@ export interface OllamaConfig {
   model: string;
 }
 
-export type AIConfig = OpenRouterConfig | OllamaConfig;
+export interface PollinationsConfig {
+  provider: 'pollinations';
+}
+
+export type AIConfig = PollinationsConfig | OpenRouterConfig | OllamaConfig;
 
 // CLI
 

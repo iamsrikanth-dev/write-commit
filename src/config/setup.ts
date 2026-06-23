@@ -1,6 +1,6 @@
 import * as readline from 'readline';
 import { AIConfig } from '../types/index.js';
-import { saveConfig, getConfigPath } from './store.js';
+import { saveConfig, getConfigPath, configExists, deleteConfig } from './store.js';
 import { DEFAULT_MODEL, OPENROUTER_DEFAULT_OLLAMA_URL, DEFAULT_OLLAMA_MODEL } from '../constants/index.js';
 
 const C = {
@@ -22,18 +22,20 @@ function ask(question: string): Promise<string> {
   });
 }
 
-async function pickProvider(): Promise<'openrouter' | 'ollama'> {
+async function pickProvider(): Promise<'pollinations' | 'openrouter' | 'ollama'> {
   print(`${C.bold}Choose your AI provider:${C.reset}`);
   br();
-  print(`  ${C.cyan}${C.bold}1${C.reset}  OpenRouter  ${C.dim}(cloud — free models available)${C.reset}`);
-  print(`  ${C.cyan}${C.bold}2${C.reset}  Ollama      ${C.dim}(local — runs on your machine)${C.reset}`);
+  print(`  ${C.cyan}${C.bold}1${C.reset}  Pollinations  ${C.dim}(default — free, no account, no API key)${C.reset}`);
+  print(`  ${C.cyan}${C.bold}2${C.reset}  OpenRouter    ${C.dim}(free cloud models — better quality, needs API key)${C.reset}`);
+  print(`  ${C.cyan}${C.bold}3${C.reset}  Ollama        ${C.dim}(fully local — runs on your machine)${C.reset}`);
   br();
 
   while (true) {
-    const answer = await ask('Enter 1 or 2: ');
-    if (answer === '1') return 'openrouter';
-    if (answer === '2') return 'ollama';
-    print('Please enter 1 or 2.');
+    const answer = await ask('Enter 1, 2, or 3: ');
+    if (answer === '1') return 'pollinations';
+    if (answer === '2') return 'openrouter';
+    if (answer === '3') return 'ollama';
+    print('Please enter 1, 2, or 3.');
   }
 }
 
@@ -52,11 +54,7 @@ async function setupOpenRouter(): Promise<AIConfig> {
     `${C.bold}Model${C.reset} ${C.dim}(press Enter for default: ${DEFAULT_MODEL})${C.reset}: `,
   );
 
-  return {
-    provider: 'openrouter',
-    apiKey,
-    model: modelInput || DEFAULT_MODEL,
-  };
+  return { provider: 'openrouter', apiKey, model: modelInput || DEFAULT_MODEL };
 }
 
 async function setupOllama(): Promise<AIConfig> {
@@ -79,28 +77,30 @@ async function setupOllama(): Promise<AIConfig> {
   };
 }
 
-export async function runSetup(isReconfig = false): Promise<AIConfig> {
+export async function runSetup(_isReconfig = false): Promise<AIConfig> {
   br();
-  if (isReconfig) {
-    print(`${C.cyan}${C.bold}⚙  write-commit — update config${C.reset}`);
-    print(`${C.dim}Config is saved globally — changes apply to every project.${C.reset}`);
-  } else {
-    print(`${C.cyan}${C.bold}👋 Welcome to write-commit!${C.reset}`);
-    print(`${C.dim}One-time setup — saved globally at ~/.write-commit/config.json.${C.reset}`);
-    print(`${C.dim}Works in every project without any .env files.${C.reset}`);
-    br();
-    print(`${C.bold}How it generates commit messages:${C.reset}`);
-    print(`  ${C.cyan}default${C.reset}  Subject line + bullet list covering every changed file/function.`);
-    print(`           Best for multi-file commits. Run: ${C.bold}write-commit${C.reset}`);
-    print(`  ${C.cyan}--short${C.reset}  Single subject line only, under 72 characters.`);
-    print(`           Best for small focused commits. Run: ${C.bold}write-commit --short${C.reset}`);
-    br();
-    print(`${C.dim}You can always change your provider later with: write-commit config${C.reset}`);
-  }
+  print(`${C.cyan}${C.bold}⚙  write-commit — provider config${C.reset}`);
+  br();
+  print(`${C.dim}Current default: Pollinations (free, no setup required)${C.reset}`);
+  print(`${C.dim}Switch to OpenRouter or Ollama for higher quality messages.${C.reset}`);
   br();
 
   const provider = await pickProvider();
-  const config   = provider === 'openrouter' ? await setupOpenRouter() : await setupOllama();
+
+  let config: AIConfig;
+
+  if (provider === 'pollinations') {
+    // Reset to default — delete any saved config so Pollinations is used
+    if (configExists()) deleteConfig();
+    br();
+    print(`${C.green}${C.bold}✅ Reset to Pollinations (zero setup)${C.reset}`);
+    br();
+    return { provider: 'pollinations' };
+  }
+
+  config = provider === 'openrouter'
+    ? await setupOpenRouter()
+    : await setupOllama();
 
   saveConfig(config);
 

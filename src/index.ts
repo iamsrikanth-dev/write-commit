@@ -5,47 +5,43 @@ import { runCommit } from './commands/commit.js';
 import { runLog } from './commands/log.js';
 import { runSetup } from './config/setup.js';
 import { loadConfig, getConfigPath } from './config/store.js';
-import { CommitOptions } from './types/index.js';
+import { CommitOptions, AIConfig } from './types/index.js';
 import { logger } from './utils/logger.js';
 
 const program = new Command();
 
 program
   .name('write-commit')
-  .description('AI-powered Git commit message generator (OpenRouter or Ollama)')
+  .description('AI-powered Git commit message generator — zero setup, works instantly')
   .version('1.0.0');
 
 // ── commit (default) ──────────────────────────────────────────────────────────
 program
   .command('commit', { isDefault: true })
   .description('Generate a commit message for staged changes and commit')
-  .option('-d, --dry-run',  'Generate message without committing',                                false)
-  .option('-y, --yes',      'Skip confirmation prompt',                                           false)
-  .option('--amend',        'Amend the previous commit',                                          false)
-  .option('-s, --short',    'Single-line subject only (no bullet body)',                          false)
+  .option('-d, --dry-run', 'Generate message without committing',         false)
+  .option('-y, --yes',     'Skip confirmation prompt',                    false)
+  .option('--amend',       'Amend the previous commit',                   false)
+  .option('-s, --short',   'Single-line subject only (no bullet body)',   false)
   .addHelpText('after', `
 Message modes:
   default (full)   Subject line + bullet list covering every changed file/function.
-                   Best for multi-file commits — gives reviewers full context.
-
   --short (-s)     Single subject line only, under 72 characters.
-                   Best for tiny, focused commits.
 
 Examples:
   write-commit                    Full message, confirm before committing
   write-commit --short            One-line message only
   write-commit --short --yes      One-line, auto-confirm
-  write-commit --dry-run          Preview full message, do not commit
-  write-commit --amend            Regenerate message and amend last commit
+  write-commit --dry-run          Preview message, do not commit
+  write-commit --amend            Regenerate and amend last commit
+
+Provider:
+  Works out of the box — no setup needed.
+  To use OpenRouter or Ollama: write-commit config
 `)
   .action(async (options: CommitOptions) => {
-    let config = loadConfig();
-
-    // First-time: run setup wizard
-    if (!config) {
-      config = await runSetup(false);
-    }
-
+    // Use saved config if exists, otherwise fall back to Pollinations (zero setup)
+    const config: AIConfig = loadConfig() ?? { provider: 'pollinations' };
     await runCommit(options, config);
   });
 
@@ -60,25 +56,32 @@ program
 // ── config ────────────────────────────────────────────────────────────────────
 program
   .command('config')
-  .description('View or update your AI provider settings')
+  .description('Switch provider (Pollinations / OpenRouter / Ollama) or update credentials')
   .option('--show', 'Print current config without editing')
+  .addHelpText('after', `
+Providers:
+  pollinations   Zero setup — free, no account, no API key (default)
+  openrouter     Free cloud models — requires an API key (openrouter.ai/keys)
+  ollama         Fully local — requires Ollama running on your machine
+`)
   .action(async (opts: { show?: boolean }) => {
     if (opts.show) {
       const config = loadConfig();
-      if (!config) {
-        logger.error('No config found. Run: write-commit config');
-        process.exit(1);
-      }
       logger.newline();
-      logger.bold(`Provider : ${config.provider}`);
-      if (config.provider === 'openrouter') {
-        logger.bold(`Model    : ${config.model}`);
-        logger.bold(`API key  : ${config.apiKey.slice(0, 8)}${'*'.repeat(20)}`);
+      if (!config) {
+        logger.bold('Provider : pollinations (default — no config file)');
+        logger.dim('Run: write-commit config   to switch provider');
       } else {
-        logger.bold(`URL      : ${config.baseUrl}`);
-        logger.bold(`Model    : ${config.model}`);
+        logger.bold(`Provider : ${config.provider}`);
+        if (config.provider === 'openrouter') {
+          logger.bold(`Model    : ${config.model}`);
+          logger.bold(`API key  : ${config.apiKey.slice(0, 8)}${'*'.repeat(20)}`);
+        } else if (config.provider === 'ollama') {
+          logger.bold(`URL      : ${config.baseUrl}`);
+          logger.bold(`Model    : ${config.model}`);
+        }
+        logger.dim(`\nConfig file: ${getConfigPath()}`);
       }
-      logger.dim(`\nConfig file: ${getConfigPath()}`);
       logger.newline();
       return;
     }

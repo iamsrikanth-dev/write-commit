@@ -30,3 +30,9 @@ export function saveConfig(config: AIConfig): void {
 export function getConfigPath(): string {
   return CONFIG_FILE;
 }
+
+export function deleteConfig(): void {
+  if (fs.existsSync(CONFIG_FILE)) {
+    fs.unlinkSync(CONFIG_FILE);
+  }
+}

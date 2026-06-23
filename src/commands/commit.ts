@@ -3,6 +3,7 @@ import { CommitOptions, AIConfig } from '../types/index.js';
 import { isGitRepo, hasStagedChanges, getStagedDiff, commit } from '../git/git.js';
 import { generateCommitMessage } from '../services/openrouter.js';
 import { generateWithOllama } from '../services/ollama.js';
+import { generateWithPollinations } from '../services/pollinations.js';
 import { logger } from '../utils/logger.js';
 import { validateDiff } from '../utils/validation.js';
 import { MAX_DIFF_LENGTH } from '../constants/index.js';
@@ -15,6 +16,9 @@ function askConfirmation(question: string): Promise<boolean> {
 }
 
 async function generate(diff: string, config: AIConfig, short: boolean): Promise<string> {
+  if (config.provider === 'pollinations') {
+    return generateWithPollinations(diff, short);
+  }
   if (config.provider === 'ollama') {
     return generateWithOllama(diff, config.baseUrl, config.model, short);
   }
