@@ -5,29 +5,68 @@ import { COMMIT_TEMPERATURE } from '../constants/index.js';
 const POLLINATIONS_URL = 'https://text.pollinations.ai/';
 const POLLINATIONS_MODEL = 'openai-fast';
 
-// Pollinations free tier struggles with large payloads — keep diff short
-const MAX_POLLINATIONS_DIFF = 3000;
+// Keep diff short — Pollinations free tier has payload limits
+const MAX_POLLINATIONS_DIFF = 2500;
+
+// Phrases that signal the model has entered a reasoning loop
+const LOOP_SIGNALS = [
+  'we need to mention',
+  'we must mention',
+  'also mention',
+  'we should mention',
+  'we need to list',
+  'we must list',
+  'we need to say',
+];
+
+const COMMIT_LINE =
+  /^(feat|fix|refactor|docs|chore|style|test|perf|build|ci)(\([^)]+\))?:\s+\S.{2,}/;
+const SUBJECT_PREFIX = /^(subject|commit message|type|result)\s*:\s*/i;
+const BULLET_LINE = /^\s*[-*]\s+\S/;
 
 interface PollinationsResponse {
   reasoning?: string;
   content?: string;
-  tool_calls?: unknown[];
 }
 
-const COMMIT_LINE = /^(feat|fix|refactor|docs|chore|style|test|perf|build|ci)(\([^)]+\))?:\s+\S.*/;
-const BULLET_LINE = /^\s*-\s+\S/;
+/**
+ * Cut the reasoning at the point where repetitive loop phrases begin,
+ * so we only search the useful part of the model's thinking.
+ */
+function cutAtLoopStart(text: string): string {
+  const lines = text.split('\n');
+  let loopCount = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const lower = lines[i].toLowerCase();
+    if (LOOP_SIGNALS.some((s) => lower.includes(s))) {
+      loopCount++;
+      // If we see 3+ loop lines, cut here
+      if (loopCount >= 3) {
+        return lines.slice(0, i).join('\n');
+      }
+    } else {
+      loopCount = 0;
+    }
+  }
+
+  return text;
+}
 
 /**
- * The model writes its final answer inside `reasoning` but leaves `content`
- * empty. Scan the reasoning for the LAST conventional commit subject line,
- * then collect any bullet lines that immediately follow it.
+ * Find the FIRST conventional commit subject line in the text,
+ * then collect any bullet lines that immediately follow.
+ * Takes the first because the model writes its best answer early,
+ * then second-guesses itself into loops.
  */
-function extractFromReasoning(reasoning: string): string {
-  const lines = reasoning.split('\n');
+function extractCommitBlock(text: string): string {
+  const trimmed = cutAtLoopStart(text);
+  const lines = trimmed.split('\n');
 
   let subjectIndex = -1;
-  for (let i = lines.length - 1; i >= 0; i--) {
-    if (COMMIT_LINE.test(lines[i].trim())) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim().replace(SUBJECT_PREFIX, '');
+    if (COMMIT_LINE.test(line)) {
       subjectIndex = i;
       break;
     }
@@ -35,15 +74,21 @@ function extractFromReasoning(reasoning: string): string {
 
   if (subjectIndex === -1) return '';
 
-  const result: string[] = [lines[subjectIndex].trim()];
+  const subject = lines[subjectIndex].trim().replace(SUBJECT_PREFIX, '');
+  const result: string[] = [subject];
 
-  // Collect blank line + bullets that immediately follow
   let i = subjectIndex + 1;
-  // Allow one blank separator line
-  if (i < lines.length && lines[i].trim() === '') {
-    result.push('');
+
+  // Skip blank lines and label lines ("Bullets:", "Notes:", etc.) before actual bullets
+  while (
+    i < lines.length &&
+    (lines[i].trim() === '' || /^(bullets|notes|changes)\s*:?\s*$/i.test(lines[i].trim()))
+  ) {
+    if (lines[i].trim() === '') result.push('');
     i++;
   }
+
+  // Collect bullet lines (stop at blank line after bullets or loop content)
   while (i < lines.length && BULLET_LINE.test(lines[i])) {
     result.push(lines[i].trim());
     i++;
@@ -56,16 +101,15 @@ function parseResponse(raw: string): string {
   try {
     const parsed = JSON.parse(raw) as PollinationsResponse;
 
-    if (parsed.content && parsed.content.trim()) {
-      return parsed.content.trim();
-    }
+    if (parsed.content?.trim()) return parsed.content.trim();
+
     if (parsed.reasoning) {
-      const extracted = extractFromReasoning(parsed.reasoning);
+      const extracted = extractCommitBlock(parsed.reasoning);
       if (extracted) return extracted;
     }
   } catch {
-    // Plain text response — use as-is
-    const extracted = extractFromReasoning(raw);
+    // Plain text — search it directly
+    const extracted = extractCommitBlock(raw);
     if (extracted) return extracted;
   }
 
@@ -76,7 +120,6 @@ export async function generateWithPollinations(
   diff: string,
   short = false,
 ): Promise<string> {
-  // Truncate aggressively — Pollinations free tier has payload limits
   const trimmedDiff =
     diff.length > MAX_POLLINATIONS_DIFF
       ? diff.slice(0, MAX_POLLINATIONS_DIFF) + '\n... (truncated)'
@@ -124,7 +167,7 @@ export async function generateWithPollinations(
       if (err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND') {
         throw new Error('Cannot reach Pollinations AI. Check your internet connection.');
       }
-      if (err.code === 'ECONNABORTED' || err.code === 'ERR_BAD_RESPONSE') {
+      if (err.code === 'ECONNABORTED') {
         throw new Error('Pollinations AI timed out. Try again or switch provider: write-commit config');
       }
       throw new Error(err.message);
