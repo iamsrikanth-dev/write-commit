@@ -1,6 +1,6 @@
 {
   "name": "write-commit",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "AI-powered Git commit message generator — OpenRouter or Ollama, works in every project",
   "main": "dist/index.js",
   "bin": {
