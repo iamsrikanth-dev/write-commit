@@ -1,108 +1,36 @@
 import axios, { AxiosError } from 'axios';
 import { buildCommitPrompt } from '../prompts/commitPrompt.js';
-import { COMMIT_TEMPERATURE } from '../constants/index.js';
 
-const POLLINATIONS_URL = 'https://text.pollinations.ai/';
-const POLLINATIONS_MODEL = 'openai-fast';
-
-interface PollinationsResponse {
-  role?: string;
-  reasoning?: string;
-  content?: string;
-  tool_calls?: unknown[];
-}
+const POLLINATIONS_BASE = 'https://text.pollinations.ai';
 
 /**
- * The Pollinations model is a reasoning model — it outputs its thinking in
- * `reasoning` and leaves `content` empty. We extract the commit message
- * from the end of the reasoning, where the model writes its final answer.
+ * Pollinations GET API returns plain text — no auth, no reasoning leak.
+ * We embed system + user prompt into a single GET request.
  */
-function extractFromReasoning(reasoning: string): string {
-  // Conventional commit pattern: type(scope): subject
-  const conventionalPattern = /^(feat|fix|refactor|docs|chore|style|test|perf|build|ci)(\([^)]+\))?:\s+.+/m;
-
-  // Split into lines and find the last block starting with a conventional commit line
-  const lines = reasoning.split('\n');
-  let lastMatchIndex = -1;
-
-  for (let i = lines.length - 1; i >= 0; i--) {
-    if (conventionalPattern.test(lines[i].trim())) {
-      lastMatchIndex = i;
-      break;
-    }
-  }
-
-  if (lastMatchIndex === -1) return '';
-
-  // Collect the commit subject + any bullet lines that follow
-  const commitLines: string[] = [];
-  for (let i = lastMatchIndex; i < lines.length; i++) {
-    const line = lines[i].trim();
-    // Stop if we hit another reasoning block (long prose sentence)
-    if (i > lastMatchIndex && line.length > 0 && !line.startsWith('-') && !conventionalPattern.test(line)) {
-      break;
-    }
-    commitLines.push(lines[i]);
-  }
-
-  return commitLines.join('\n').trim();
-}
-
-function parseResponse(raw: string): string {
-  // Try to parse as JSON (reasoning model response)
-  try {
-    const parsed = JSON.parse(raw) as PollinationsResponse;
-
-    // Content field has the answer (non-reasoning models)
-    if (parsed.content && parsed.content.trim()) {
-      return parsed.content.trim();
-    }
-
-    // Reasoning model: extract commit message from the reasoning text
-    if (parsed.reasoning && parsed.reasoning.trim()) {
-      const extracted = extractFromReasoning(parsed.reasoning);
-      if (extracted) return extracted;
-    }
-  } catch {
-    // Not JSON — plain text response, use as-is
-  }
-
-  return raw.trim();
-}
-
 export async function generateWithPollinations(
   diff: string,
   short = false,
 ): Promise<string> {
   const { system, user } = buildCommitPrompt(diff, short);
 
+  // Combine into one prompt the GET endpoint can handle
+  const combined = `${system}\n\n${user}\n\nWrite the commit message now:`;
+  const encoded = encodeURIComponent(combined);
+  const url = `${POLLINATIONS_BASE}/${encoded}`;
+
   try {
-    const res = await axios.post<string>(
-      POLLINATIONS_URL,
-      {
-        messages: [
-          { role: 'system', content: system },
-          { role: 'user',   content: user },
-        ],
-        model: POLLINATIONS_MODEL,
-        temperature: COMMIT_TEMPERATURE,
-        seed: Math.floor(Math.random() * 10000),
-      },
-      {
-        headers: { 'Content-Type': 'application/json' },
-        responseType: 'text',
-        timeout: 40000,
-      },
-    );
+    const res = await axios.get<string>(url, {
+      responseType: 'text',
+      timeout: 40000,
+      // Use a consistent seed so same diff gives same result
+      params: { seed: 42, model: 'openai' },
+    });
 
-    const raw = typeof res.data === 'string' ? res.data : JSON.stringify(res.data);
-    if (!raw.trim()) throw new Error('Pollinations returned an empty response.');
+    const raw = typeof res.data === 'string' ? res.data.trim() : String(res.data).trim();
+    if (!raw) throw new Error('Pollinations returned an empty response.');
 
-    const message = parseResponse(raw);
-    if (!message) throw new Error('Could not extract commit message from response.');
-
-    // Strip markdown fences or preamble
-    const cleaned = message
+    // Strip any markdown fences or preamble the model may add
+    const cleaned = raw
       .replace(/^```[^\n]*\n?/, '')
       .replace(/```$/, '')
       .replace(/^["'`]+|["'`]+$/g, '')
